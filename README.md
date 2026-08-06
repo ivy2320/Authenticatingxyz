@@ -31,17 +31,7 @@ Visit `http://127.0.0.1:8000/docs` for interactive API docs.
 - **Tokens:** JWT (access + rotating refresh)
 - **Hosting:** Render/Railway (backend) + Vercel (frontend)
 
-## Security Design
 
-### What's Implemented ✓
-
-- **Password Hashing:** bcrypt with salt (never store plaintext)
-- **Access Tokens:** Short-lived JWTs (15 min) — stateless verification via signature
-- **Refresh Tokens:** Long-lived, rotated on every use, stored hashed in DB
-- **Rate Limiting:** 5 attempts/min on login/register — slows brute-force attacks
-- **Generic Errors:** "Invalid email or password" for both wrong email and wrong password — prevents email enumeration
-- **HttpOnly Cookies:** Refresh tokens delivered as `httpOnly`, `Secure`, `SameSite=Strict` — immune to XSS theft
-- **CORS:** Configured for safe cross-origin requests with credentials
 
 ### What's NOT Implemented (Production Gaps) ✗
 
@@ -85,7 +75,7 @@ Response:
 
 ## Project Phases
 
-### Phase 1: Direct User Auth ✓ (Current)
+### Phase 1: Direct User Auth  (Current)
 - Register/login with email/password
 - JWT access tokens + rotating refresh tokens
 - Protected routes via Bearer token
