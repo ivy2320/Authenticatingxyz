@@ -12,32 +12,11 @@ A learning/portfolio authentication system demonstrating core auth concepts: use
 
 ### Setup
 
-```bash
-# Clone and navigate to project
-git clone <your-repo>
-cd auth-platform
 
-# Create virtual environment
-python -m venv venv
 
-# Activate it
-# On Mac/Linux:
-source venv/bin/activate
-# On Windows PowerShell:
-venv\Scripts\Activate.ps1
 
-# Install dependencies
-pip install -r requirements.txt
 
-# Set up environment variables
-cp .env.example .env
-# Edit .env and add your Supabase connection string:
-# DATABASE_URL=postgresql://postgres.xxx:password@aws-0-xx-xxxx-1.pooler.supabase.com:5432/postgres
-```
 
-### Run It
-
-```bash
 uvicorn main:app --reload
 ```
 
