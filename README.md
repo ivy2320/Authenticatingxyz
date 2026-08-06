@@ -75,28 +75,7 @@ Visit `http://127.0.0.1:8000/docs` for interactive API docs.
 - Centralized logging/monitoring
 - Rate limiting at infrastructure level (DDoS protection)
 
-## Endpoints
 
-| Method | Path | Description | Auth Required |
-|--------|------|-------------|----------------|
-| POST | `/auth/register` | Create new user | No |
-| POST | `/auth/login` | Login, return access token + set refresh cookie | No |
-| POST | `/auth/refresh` | Rotate refresh token, issue new access token | No (uses cookie) |
-| POST | `/auth/logout` | Revoke refresh token, clear cookie | No (uses cookie) |
-| GET | `/auth/me` | Get current user info | **Yes** (Bearer token) |
-
-### Example: Register
-
-```bash
-curl -X POST http://127.0.0.1:8000/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"SecurePass123"}'
-```
-
-Response:
-```json
-{"id":"uuid-here","email":"user@example.com","is_verified":false}
-```
 
 ### Example: Login
 
