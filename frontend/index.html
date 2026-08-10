@@ -34,7 +34,6 @@ body {
   position: relative;
 }
 
-/* Animated background */
 body::before {
   content: '';
   position: fixed;
@@ -423,7 +422,6 @@ button:disabled {
   color: var(--error);
 }
 
-/* Floating animation for card */
 .card {
   animation: float 3s ease-in-out infinite;
 }
@@ -433,7 +431,6 @@ button:disabled {
   50% { transform: translateY(-8px); }
 }
 
-/* Glow effect on brand */
 .brand h1 {
   animation: glowPulse 3s ease-in-out infinite;
 }
@@ -524,7 +521,7 @@ button:disabled {
 </div>
 
 <script>
-const API_BASE = "http://127.0.0.1:8000";
+const API_BASE = "https://authenticatingxyz.onrender.com";
 
 let accessToken = null;
 let tokenExpiresAt = null;
@@ -712,4 +709,3 @@ $('logoutBtn').addEventListener('click', async () => {
 </script>
 
 </body>
-</html>
