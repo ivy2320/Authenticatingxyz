@@ -519,10 +519,8 @@ button:disabled {
     </div>
   </div>
 </div>
-
 <script>
 const API_BASE = "https://authenticatingxyz.onrender.com";
-
 let accessToken = null;
 let tokenExpiresAt = null;
 let ttlInterval = null;
@@ -535,8 +533,7 @@ function decodeJwt(token) {
   } catch (e) {
     return null;
   }
-}
-
+}                                                
 function showMsg(id, text, type) {
   const el = $(id);
   el.textContent = text;
