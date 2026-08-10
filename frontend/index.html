@@ -792,7 +792,6 @@
                 </form>
 
 
-                <!-- TERMINAL -->
 
                 <div class="terminal">
 
@@ -814,10 +813,7 @@
             </div>
 
 
-            <!-- =========================
-                 USER DASHBOARD
-            ========================= -->
-
+            
             <div
                 class="dashboard"
                 id="dashboard"
@@ -894,18 +890,13 @@
     </main>
 
 
-    <!-- =========================
-         FOOTER
-    ========================= -->
 
     <footer>
         AUTHETICATE • SECURE IDENTITY SYSTEM
     </footer>
 
 
-    <!-- =========================
-         JAVASCRIPT
-    ========================= -->
+
 
     <script>
 
@@ -987,9 +978,7 @@
         );
 
 
-        /* =========================
-           REGISTER TAB
-        ========================= */
+
 
         registerTab.addEventListener(
             "click",
@@ -1013,9 +1002,6 @@
         );
 
 
-        /* =========================
-           LOGIN / REGISTER
-        ========================= */
 
         authForm.addEventListener(
             "submit",
@@ -1085,7 +1071,6 @@
                     }
 
 
-                    /* REGISTRATION SUCCESS */
 
                     if (isRegisterMode) {
 
@@ -1130,10 +1115,6 @@
             }
         );
 
-
-        /* =========================
-           LOAD CURRENT USER
-        ========================= */
 
         async function loadCurrentUser() {
 
@@ -1203,9 +1184,7 @@
         }
 
 
-        /* =========================
-           LOGOUT
-        ========================= */
+    
 
         logoutBtn.addEventListener(
             "click",
@@ -1253,9 +1232,6 @@
         );
 
 
-        /* =========================
-           CHECK EXISTING SESSION
-        ========================= */
 
         loadCurrentUser();
 
