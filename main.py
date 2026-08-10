@@ -60,7 +60,7 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token_raw,
         httponly=True,
-        secure= True,  # requires HTTPS
+        secure= True, 
         samesite="strict",
         max_age=7 * 24 * 60 * 60,  # 7 days
     )
