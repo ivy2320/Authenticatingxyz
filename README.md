@@ -1,155 +1,169 @@
-# Authentication Platform
+# Authenticating XYZ — Auth Platform
 
-An authentication system demonstrating core auth concepts: user registration, JWT-based login, token refresh rotation, and OAuth2 provider patterns.
+JWT-based authentication system built with FastAPI, PostgreSQL (Supabase), and JavaScript.
 
-**Note:** This is an educational implementation, not a production-ready service. In production, use managed solutions like Auth0 or AWS Cognito.
+
+**Repo:** [https://github.com/ivy2320/Authenticatingxyz]
+
+---
 
 ## Quick Start
 
-### Prerequisites
-- Python 3.10+
-- A Supabase account (free tier works)
+```bash
+# Setup
+git clone <repo>
+cd authenticatingxyz
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+# Add your Supabase connection string to .env
 
-### Setup
-
-
-
-
-
-
+# Run locally
+# Terminal 1:
 uvicorn main:app --reload
+
+# Terminal 2:
+cd frontend
+python -m http.server 5500
+
+# Open: http://127.0.0.1:5500
 ```
 
-Visit `http://127.0.0.1:8000/docs` for interactive API docs.
+---
+
+## Features
+
+- **User Registration** — email/password signup with Bcrypt hashing
+- **Login/Logout** — JWT access tokens + rotating refresh tokens
+- **Protected Routes** — Bearer token verification
+- **Rate Limiting** — brute-force protection (10 attempts/min)
+- **Token Refresh** — automatic rotation on use
+- **HttpOnly Cookies** — secure refresh token storage
+
+---
 
 ## Tech Stack
 
-- **Backend:** FastAPI
-- **Database:** Supabase (PostgreSQL on AWS)
-- **ORM:** SQLAlchemy
-- **Password Hashing:** bcrypt
-- **Tokens:** JWT (access + rotating refresh)
-- **Hosting:** Render/Railway (backend) + Vercel (frontend)
+| Component | Technology |
+|-----------|------------|
+| Backend | FastAPI (Python) |
+| Database | PostgreSQL (Supabase) |
+| ORM | SQLAlchemy |
+| Auth | JWT (PyJWT) + Bcrypt |
+| Frontend | HTML/JS (no framework) |
 
+---
 
+## API Endpoints
 
-### What's NOT Implemented (Production Gaps) ✗
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | `/auth/register` | Create account |
+| POST | `/auth/login` | Login, get tokens |
+| POST | `/auth/refresh` | Refresh access token |
+| POST | `/auth/logout` | Logout, revoke token |
+| GET | `/auth/me` | Get user (protected) |
 
-- Email verification / password reset flows
-- Multi-factor authentication (MFA/TOTP)
-- Account lockout after failed attempts
-- Breach detection or anomaly alerts
-- Compliance certifications (SOC 2, GDPR audit, etc.)
-- 99.99% uptime guarantees or disaster recovery
-- Centralized logging/monitoring
-- Rate limiting at infrastructure level (DDoS protection)
+---
 
+## Security
 
+✅ **Implemented:**
+- Bcrypt password hashing (one-way, salted, slow)
+- Short-lived access tokens (15 min, stateless)
+- Long-lived refresh tokens (7 days, tracked in DB, rotated on use)
+- Generic login errors (no email enumeration)
+- Rate limiting (prevent brute-force)
+- HttpOnly cookies (XSS protection)
+--
 
-### Example: Login
+## Database
 
-```bash
-curl -X POST http://127.0.0.1:8000/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"SecurePass123"}'
-```
+**users table:**
+- `id` (UUID)
+- `email` (unique)
+- `password_hash` (Bcrypt)
+- `is_verified` (boolean)
+- `created_at`
 
-Response:
-```json
-{"access_token":"eyJhbGc...","token_type":"bearer"}
-```
+**refresh_tokens table:**
+- `id` (UUID)
+- `token_hash` (hashed)
+- `user_id` (FK)
+- `expires_at`
+- `revoked` (boolean)
+- `created_at`
 
-(Refresh token is set as an httpOnly cookie automatically)
+---
 
-### Example: Protected Route
+## Key Design Decisions
 
-```bash
-curl -X GET http://127.0.0.1:8000/auth/me \
-  -H "Authorization: Bearer eyJhbGc..."
-```
+**JWT + Refresh Tokens Pattern:**
+- Access tokens are **stateless** (fast, no DB lookup) but **can't be revoked**
+- Refresh tokens are **stateful** (tracked in DB) so they **can be revoked**
+- On refresh: old token marked revoked, new token issued (rotation)
+- If token stolen, attacker gets limited use before rotation
 
-Response:
-```json
-{"id":"uuid-here","email":"user@example.com","is_verified":false}
-```
+**Why Bcrypt over SHA256?**
+- Bcrypt is slow (~100ms) — brute-force attacks become impractical
+- SHA256 is fast — attackers can try millions of passwords per second
+- Bcrypt salts automatically — prevents rainbow table attacks
 
-## Project Phases
-
-### Phase 1: Direct User Auth  (Current)
-- Register/login with email/password
-- JWT access tokens + rotating refresh tokens
-- Protected routes via Bearer token
-- Rate limiting & generic error messages
-
-### Phase 2: OAuth2 Provider (Future)
-- Authorization endpoint with consent screen
-- Token exchange endpoint
-- Client registration & vetting
-- Redirect URI validation
-- Scopes and permissions
-
-Implementation will use `oidc-provider` library for spec compliance.
-
-### Phase 3: Frontend (Future)
-- Registration page
-- Login page
-- Dashboard (show logged-in user)
-- Token countdown indicator
-- Manual token refresh button
-
-## Database Schema
-
-### `users` table
-## Key Security Decisions & Why
-
-| Decision | Why |
-|----------|-----|
-| Bcrypt password hashing | Slow & salted, resists rainbow tables & brute-force |
-| Short-lived access tokens | Limits blast radius if token is stolen |
-| Rotating refresh tokens | Old token invalidated on every refresh — stolen token has single-use value |
-| Hashed refresh tokens in DB | DB breach doesn't leak usable tokens |
-| HttpOnly cookies for refresh | JS can't access (XSS protection), only sent to same origin |
-| Generic login errors | Attacker can't enumerate which emails are registered |
-| Rate limiting | Slows password guessing from being practical |
+---
 
 ## Deployment
 
-### Database (Supabase)
-1. Create project at supabase.com
-2. Copy connection string to `.env`
-3. Tables auto-created on first run
+### Backend (Render)
 
-### Backend (Render or Railway)
-1. Push code to GitHub
-2. Connect GitHub repo to Render/Railway
-3. Set environment variables (DATABASE_URL, JWT_SECRET, etc.)
-4. Deploy — auto-redeploy on every push
+1. Create account at **render.com**
+2. Connect GitHub repo
+3. Build command: `pip install -r requirements.txt`
+4. Start command: `uvicorn main:app --host 0.0.0.0 --port 8000`
+5. 5. Add env vars: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
+6. Deploy — get URL like `https://authenticatingxyz-api.onrender.com`
 
-### Frontend (Vercel or local)
-- Simple HTML/JS frontend included in `/frontend`
-- Run locally: `cd frontend && python -m http.server 5500`
-- Or deploy to Vercel for persistent hosting
+### Frontend (Vercel)
 
+1. Create account at **vercel.com**
+2. Import GitHub repo
+3. Root directory: `frontend`
+4. Deploy — get URL like `https://authenticatingxyz.vercel.app`
 
+### Connect Them
 
-## Running Tests (Future)
-
-```bash
-pytest tests/ -v
+Update `frontend/index.html`:
+```javascript
+const API_BASE = "https://authenticatingxyz-api.onrender.com";
 ```
 
-## Further Reading
+Push to GitHub → auto-redeploy
 
-- [OAuth 2.0 Authorization Framework](https://tools.ietf.org/html/rfc6749)
-- [OpenID Connect](https://openid.net/connect/)
-- [OWASP Authentication Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Authentication_Cheat_Sheet.html)
-- [JWT Best Practices](https://tools.ietf.org/html/rfc8725)
+---
 
-## License
+## What I Learned
 
-MIT
+- **Token lifecycle:** How short-lived + refresh tokens balance speed vs. revocation
+- **Bcrypt vs hashing:** Why slow hashing is better for passwords
+- **Stateless vs stateful:** When to use JWT (fast) vs tracking (revocable)
+- **HTTP security:** CORS, HttpOnly cookies, HTTPS, SameSite
+- **ORM patterns:** SQLAlchemy makes DB queries type-safe & portable
 
-## Author
+---
 
-Built as a portfolio/learning project.
+## Future Features ⚠️ **Not implemented yet (not production-ready):**
+- Email verification
+- Password reset
+- 2FA/MFA
+- Account lockout
+- Audit logging
+
+---
+
+- [ ] Email verification
+- [ ] Password reset 
+- [ ] 2FA 
+- [ ] Active sessions dashboard
+- [ ] OAuth2 provider (other apps can "Sign in with YourApp")
+
 
