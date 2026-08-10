@@ -120,7 +120,7 @@ python -m http.server 5500
 2. Connect GitHub repo
 3. Build command: `pip install -r requirements.txt`
 4. Start command: `uvicorn main:app --host 0.0.0.0 --port 8000`
-5. 5. Add env vars: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
+5. Add env vars: `DATABASE_URL`, `JWT_SECRET`, `JWT_REFRESH_SECRET`
 6. Deploy — get URL like `https://authenticatingxyz-api.onrender.com`
 
 ### Frontend (Vercel)
