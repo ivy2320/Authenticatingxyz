@@ -9,7 +9,7 @@ print("1. Testing POST /auth/register")
 print("=" * 60)
 response = requests.post(
     f"{BASE_URL}/auth/register",
-    json={"email": "user2@example.com", "password": "SecurePass123"}
+    json={"email": "thisisme@forexample.com", "password": "abcd123"}
 )
 print(f"Status: {response.status_code}")
 print(f"Response: {response.json()}")
@@ -20,7 +20,7 @@ print("2. Testing POST /auth/login")
 print("=" * 60)
 response = session.post(
     f"{BASE_URL}/auth/login",
-    json={"email": "user2@example.com", "password": "SecurePass123"}
+    json={"email": "megaian@forexample.com", "password": "abcdjwj123"}
 )
 print(f"Status: {response.status_code}")
 print(f"Response: {response.json()}")
@@ -69,4 +69,4 @@ response = session.post(f"{BASE_URL}/auth/refresh")
 print(f"Status: {response.status_code}")
 print(f"Response: {response.json()}")
 
-print("\n✅ All tests completed!")
+print("\n All tests completed!")
