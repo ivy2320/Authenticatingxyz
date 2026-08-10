@@ -1,708 +1,1265 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Authenticating xyz</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-:root {
-  --bg: #0a0b10;
-  --bg-dark: #050608;
-  --panel: #0f1119;
-  --border: #1e2230;
-  --text: #e7e6e2;
-  --muted: #8b8d9b;
-  --accent: #ffb457;
-  --accent-light: #ffc870;
-  --success: #6fcf97;
-  --error: #e2574c;
-  --mono: 'JetBrains Mono', monospace;
-}
+    <title>Authentication System</title>
 
-* { margin: 0; padding: 0; box-sizing: border-box; }
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "Courier New", monospace;
+        }
 
-html { scroll-behavior: smooth; }
+        :root {
+            --amber: #d6a84f;
+            --amber-light: #f0c76b;
+            --amber-dark: #8f6725;
+            --cream: #e8ddca;
+            --muted: #918777;
+            --panel: rgba(9, 9, 8, 0.96);
+            --border: rgba(214, 168, 79, 0.28);
+        }
 
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  padding: 40px 20px;
-  overflow-x: hidden;
-  position: relative;
-}
+        
+        body {
+            min-height: 100vh;
 
-body::before {
-  content: '';
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle at 20% 50%, rgba(255, 180, 87, 0.1) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(111, 207, 151, 0.08) 0%, transparent 50%);
-  pointer-events: none;
-  z-index: 0;
-  animation: gradientShift 15s ease-in-out infinite;
-}
+            color: var(--cream);
+            font-family: "Courier New", monospace;
 
-@keyframes gradientShift {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
-}
+            overflow-x: hidden;
 
-.container {
-  max-width: 420px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 1;
-}
+            background:
+                radial-gradient(
+                    circle at 50% 10%,
+                    rgba(214, 168, 79, 0.055),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    135deg,
+                    #020202 0%,
+                    #080807 40%,
+                    #0c0b09 60%,
+                    #030303 100%
+                );
+        }
 
-.brand {
-  text-align: center;
-  margin-bottom: 50px;
-  animation: slideDown 0.8s ease-out;
-}
+        
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+        body::after {
+            content: "";
 
-.brand h1 {
-  font-size: 32px;
-  margin-bottom: 8px;
-  font-family: 'Space Grotesk', sans-serif;
-  letter-spacing: 3px;
-  font-weight: 700;
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 30px rgba(255, 180, 87, 0.3);
-}
+            position: fixed;
+            inset: 0;
 
-.brand p {
-  color: var(--muted);
-  font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
+            pointer-events: none;
 
-.card {
-  background: linear-gradient(135deg, var(--panel) 0%, rgba(15, 17, 25, 0.8) 100%);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 36px;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 180, 87, 0.1);
-  animation: fadeInUp 0.8s ease-out 0.2s both;
-}
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent 0%,
+                    rgba(214, 168, 79, 0.018) 50%,
+                    transparent 100%
+                ),
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(255, 255, 255, 0.008) 0px,
+                    rgba(255, 255, 255, 0.008) 1px,
+                    transparent 1px,
+                    transparent 4px
+                );
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+            z-index: -1;
+        }
 
-.tabs {
-  display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 28px;
-  position: relative;
-}
+       
 
-.tab-indicator {
-  position: absolute;
-  bottom: -1px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-light));
-  transition: left 0.3s ease, width 0.3s ease;
-  box-shadow: 0 0 10px rgba(255, 180, 87, 0.5);
-}
+        .topbar {
+            height: 72px;
 
-.tab-btn {
-  flex: 1;
-  padding: 12px;
-  background: none;
-  border: none;
-  color: var(--muted);
-  cursor: pointer;
-  font-size: 13px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  transition: color 0.3s;
-  position: relative;
-  font-weight: 500;
-}
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
 
-.tab-btn:hover {
-  color: var(--accent);
-}
+            padding: 0 6%;
 
-.tab-btn.active {
-  color: var(--text);
-}
+            background: rgba(3, 3, 3, 0.92);
 
-.tab-content { display: none; animation: fadeIn 0.4s ease-out; }
-.tab-content.active { display: block; }
+            border-bottom:
+                1px solid rgba(214, 168, 79, 0.18);
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
+            backdrop-filter: blur(8px);
+        }
 
-.form-group { margin-bottom: 18px; }
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 9px;
 
-label {
-  display: block;
-  font-size: 11px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin-bottom: 6px;
-  font-weight: 600;
-}
+            color: #a99c87;
 
-input {
-  width: 100%;
-  padding: 12px 14px;
-  background: rgba(10, 11, 16, 0.6);
-  border: 1px solid var(--border);
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 13px;
-  border-radius: 6px;
-  transition: all 0.3s;
-}
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
 
-input:focus {
-  outline: none;
-  border-color: var(--accent);
-  background: rgba(10, 11, 16, 0.9);
-  box-shadow: 0 0 15px rgba(255, 180, 87, 0.2);
-}
+        .status-dot {
+            width: 8px;
+            height: 8px;
 
-input::placeholder { color: #556077; }
+            border-radius: 50%;
 
-button {
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
-  color: #0a0b10;
-  border: none;
-  border-radius: 6px;
-  font-weight: 700;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.3s;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  position: relative;
-  overflow: hidden;
-  box-shadow: 0 4px 15px rgba(255, 180, 87, 0.3);
-}
+            background: var(--amber);
 
-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 255, 255, 0.2);
-  transition: left 0.3s;
-  z-index: -1;
-}
+            box-shadow:
+                0 0 10px rgba(214, 168, 79, 0.75);
+        }
 
-button:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 25px rgba(255, 180, 87, 0.4);
-}
+        
 
-button:hover::before {
-  left: 100%;
-}
+        .container {
+            width: min(1100px, 90%);
 
-button:active {
-  transform: translateY(-1px);
-}
+            margin: 70px auto;
 
-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-}
+            display: grid;
 
-.msg {
-  margin-top: 12px;
-  padding: 12px 14px;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: var(--mono);
-  display: none;
-  animation: slideInDown 0.4s ease-out;
-}
+            grid-template-columns:
+                1fr
+                0.9fr;
 
-@keyframes slideInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+            gap: 75px;
 
-.msg.show { display: block; }
-.msg.error {
-  background: rgba(226, 87, 76, 0.15);
-  color: var(--error);
-  border: 1px solid rgba(226, 87, 76, 0.3);
-}
-.msg.success {
-  background: rgba(111, 207, 151, 0.15);
-  color: var(--success);
-  border: 1px solid rgba(111, 207, 151, 0.3);
-}
+            align-items: center;
+        }
 
-.auth-view { display: none; }
-.auth-view.active { display: block; }
+      
+        .hero {
+            animation: fadeIn 0.8s ease;
+        }
 
-.dashboard { display: none; }
-.dashboard.active { display: block; }
+        .eyebrow {
+            color: var(--amber-light);
 
-.dashboard-header {
-  margin-bottom: 32px;
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--border);
-  animation: fadeIn 0.6s ease-out;
-}
+            font-size: 11px;
+            letter-spacing: 4px;
 
-.dashboard-header h2 {
-  font-size: 22px;
-  margin-bottom: 4px;
-  font-family: 'Space Grotesk', sans-serif;
-}
+            margin-bottom: 18px;
+        }
 
-.user-email {
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 12px;
-  padding: 8px 12px;
-  background: rgba(139, 157, 171, 0.1);
-  border-radius: 4px;
-  display: inline-block;
-  margin-top: 8px;
-}
+        h1 {
+            font-family: "Courier New", monospace;
 
-.token-info {
-  background: rgba(10, 11, 16, 0.6);
-  padding: 16px;
-  border-radius: 8px;
-  margin-bottom: 20px;
-  border: 1px solid var(--border);
-  font-family: var(--mono);
-  font-size: 11px;
-  backdrop-filter: blur(5px);
-}
+            font-size:
+                clamp(
+                    46px,
+                    6vw,
+                    78px
+                );
 
-.token-label {
-  color: var(--muted);
-  margin-bottom: 8px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  font-size: 10px;
-}
+            line-height: 0.95;
 
-.token-value {
-  color: var(--accent);
-  font-size: 10px;
-  word-break: break-all;
-  margin-top: 4px;
-}
+            letter-spacing: -3px;
 
-.ttl-bar {
-  width: 100%;
-  height: 8px;
-  background: var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-  margin-top: 10px;
-  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
-}
+            color: #f0e7d8;
 
-.ttl-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--accent), var(--accent-light));
-  transition: width 1s linear, background 0.3s;
-  box-shadow: 0 0 15px rgba(255, 180, 87, 0.5);
-}
+            margin-bottom: 26px;
 
-.btn-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
-}
+            text-shadow:
+                0 3px 18px rgba(0, 0, 0, 0.65);
+        }
 
-.btn-secondary {
-  flex: 1;
-  background: transparent;
-  border: 1.5px solid var(--border);
-  color: var(--text);
-  padding: 11px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-family: var(--mono);
-  transition: all 0.3s;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
+        h1 span {
+            color: var(--amber-light);
+        }
 
-.btn-secondary:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: rgba(255, 180, 87, 0.08);
-  box-shadow: 0 0 15px rgba(255, 180, 87, 0.2);
-  transform: translateY(-2px);
-}
+        
 
-.btn-secondary:active {
-  transform: translateY(0);
-}
+        .auth-card {
+            position: relative;
 
-.btn-danger {
-  border-color: var(--error);
-  color: var(--error);
-}
+            padding: 32px;
 
-.btn-danger:hover {
-  background: rgba(226, 87, 76, 0.08);
-  box-shadow: 0 0 15px rgba(226, 87, 76, 0.2);
-}
+            background: var(--panel);
 
-.api-status {
-  padding: 12px;
-  background: rgba(111, 207, 151, 0.1);
-  border: 1px solid rgba(111, 207, 151, 0.3);
-  border-radius: 6px;
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--success);
-  margin-bottom: 20px;
-  text-align: center;
-  letter-spacing: 1px;
-  animation: pulse 2s ease-in-out infinite;
-}
+            border:
+                1px solid var(--border);
 
-@keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.7; }
-}
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.58),
+                0 5px 15px rgba(0, 0, 0, 0.35);
 
-.api-status.error {
-  background: rgba(226, 87, 76, 0.1);
-  border-color: rgba(226, 87, 76, 0.3);
-  color: var(--error);
-}
+            backdrop-filter: blur(10px);
 
-.card {
-  animation: float 3s ease-in-out infinite;
-}
+            animation: cardIn 0.7s ease;
+        }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
-}
+        .auth-card::before {
+            content: "";
 
-.brand h1 {
-  animation: glowPulse 3s ease-in-out infinite;
-}
+            position: absolute;
 
-@keyframes glowPulse {
-  0%, 100% { text-shadow: 0 0 30px rgba(255, 180, 87, 0.3); }
-  50% { text-shadow: 0 0 50px rgba(255, 180, 87, 0.6); }
-}
-</style>
+            top: -1px;
+            left: 28px;
+
+            width: 75px;
+            height: 2px;
+
+            background: var(--amber);
+
+            box-shadow:
+                0 0 14px rgba(214, 168, 79, 0.45);
+        }
+
+        .card-header {
+            display: flex;
+
+            align-items: center;
+            justify-content: space-between;
+
+            margin-bottom: 26px;
+        }
+
+        .card-header h2 {
+            color: #eee4d3;
+
+            font-family: "Courier New", monospace;
+
+            font-size: 19px;
+
+            letter-spacing: 2px;
+        }
+
+        .classification {
+            padding: 4px 7px;
+
+            color: var(--amber-light);
+
+            border:
+                1px solid rgba(214, 168, 79, 0.55);
+
+            font-size: 9px;
+
+            letter-spacing: 1px;
+        }
+
+        /* =========================
+           TABS
+        ========================= */
+
+        .tabs {
+            display: grid;
+
+            grid-template-columns: 1fr 1fr;
+
+            margin-bottom: 26px;
+
+            border-bottom:
+                1px solid #302a22;
+        }
+
+        .tab {
+            position: relative;
+
+            padding: 13px;
+
+            background: transparent;
+
+            border: none;
+
+            color: #766e62;
+
+            font-family: inherit;
+
+            letter-spacing: 1px;
+
+            cursor: pointer;
+
+            transition: 0.2s;
+        }
+
+        .tab:hover {
+            color: var(--amber-light);
+        }
+
+        .tab.active {
+            color: var(--amber-light);
+        }
+
+        .tab.active::after {
+            content: "";
+
+            position: absolute;
+
+            left: 15%;
+            right: 15%;
+
+            bottom: -1px;
+
+            height: 2px;
+
+            background: var(--amber);
+
+            box-shadow:
+                0 0 8px rgba(214, 168, 79, 0.4);
+        }
+
+        
+
+        .form-group {
+            margin-bottom: 19px;
+        }
+
+        label {
+            display: block;
+
+            margin-bottom: 8px;
+
+            color: #a69a87;
+
+            font-size: 10px;
+
+            letter-spacing: 2px;
+        }
+
+        input {
+            width: 100%;
+
+            padding: 14px;
+
+            color: #eee4d3;
+
+            background:
+                rgba(4, 4, 3, 0.82);
+
+            border:
+                1px solid #393126;
+
+            outline: none;
+
+            font-family: inherit;
+
+            transition: 0.2s;
+        }
+
+        input::placeholder {
+            color: #514b42;
+        }
+
+        input:focus {
+            border-color: var(--amber);
+
+            box-shadow:
+                0 0 0 1px rgba(214, 168, 79, 0.1),
+                0 5px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        
+        .submit-btn {
+            width: 100%;
+
+            padding: 14px;
+
+            margin-top: 5px;
+
+            border:
+                1px solid #efc96d;
+
+            border-radius: 3px;
+
+            background:
+                linear-gradient(
+                    145deg,
+                    #e2b65a,
+                    #b98228
+                );
+
+            color: #1b1206;
+
+            font-family: inherit;
+
+            font-weight: bold;
+
+            letter-spacing: 2px;
+
+            cursor: pointer;
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 5px 0 #73521f,
+                0 10px 20px rgba(0, 0, 0, 0.48);
+
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                background 0.15s ease;
+        }
+
+        .submit-btn:hover {
+            background:
+                linear-gradient(
+                    145deg,
+                    #f0c96d,
+                    #c99230
+                );
+
+            transform:
+                translateY(-4px);
+
+            box-shadow:
+                0 7px 0 #73521f,
+                0 14px 25px rgba(0, 0, 0, 0.55);
+        }
+
+        .submit-btn:active {
+            transform:
+                translateY(2px);
+
+            box-shadow:
+                0 2px 0 #73521f,
+                0 5px 10px rgba(0, 0, 0, 0.4);
+        }
+
+       
+        .message {
+            min-height: 20px;
+
+            margin-top: 15px;
+
+            font-size: 11px;
+
+            line-height: 1.5;
+        }
+
+        .success {
+            color: #d6b765;
+        }
+
+        .error {
+            color: #d96c62;
+        }
+
+       
+        .terminal {
+            margin-top: 20px;
+
+            padding: 15px;
+
+            background:
+                rgba(2, 2, 2, 0.75);
+
+            border:
+                1px solid #28231d;
+
+            color: #625b51;
+
+            font-size: 10px;
+
+            line-height: 1.8;
+        }
+
+        .terminal span {
+            color: var(--amber);
+        }
+
+        
+        .dashboard {
+            display: none;
+        }
+
+        .dashboard.visible {
+            display: block;
+        }
+
+        .dashboard-box {
+            padding: 32px;
+
+            background: var(--panel);
+
+            border:
+                1px solid var(--border);
+
+            box-shadow:
+                0 25px 70px rgba(0, 0, 0, 0.58);
+        }
+
+        .profile-line {
+            display: flex;
+
+            justify-content: space-between;
+
+            padding: 15px 0;
+
+            border-bottom:
+                1px solid #29241d;
+
+            font-size: 11px;
+        }
+
+        .profile-line span:first-child {
+            color: #756c5e;
+
+            letter-spacing: 1px;
+        }
+
+        .profile-line span:last-child {
+            color: var(--amber-light);
+        }
+
+        
+
+        .logout {
+            margin-top: 26px;
+
+            padding: 11px 18px;
+
+            background: transparent;
+
+            border:
+                1px solid #89604b;
+
+            color: #c38d72;
+
+            font-family: inherit;
+
+            cursor: pointer;
+
+            transform:
+                translateY(-1px);
+
+            box-shadow:
+                0 4px 10px rgba(0, 0, 0, 0.3);
+
+            transition: 0.2s;
+        }
+
+        .logout:hover {
+            transform:
+                translateY(-3px);
+
+            background:
+                rgba(150, 90, 60, 0.08);
+
+            box-shadow:
+                0 7px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* =========================
+           FOOTER
+        ========================= */
+
+        footer {
+            padding: 30px;
+
+            text-align: center;
+
+            color: #746b5d;
+
+            font-size: 10px;
+
+            letter-spacing: 2px;
+
+            background:
+                rgba(3, 3, 2, 0.75);
+
+            border-top:
+                1px solid rgba(214, 168, 79, 0.16);
+        }
+
+        
+        @keyframes fadeIn {
+
+            from {
+                opacity: 0;
+
+                transform:
+                    translateY(15px);
+            }
+
+            to {
+                opacity: 1;
+
+                transform:
+                    translateY(0);
+            }
+        }
+
+        @keyframes cardIn {
+
+            from {
+                opacity: 0;
+
+                transform:
+                    translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+
+                transform:
+                    translateY(0);
+            }
+        }
+
+       
+
+        @media (max-width: 800px) {
+
+            .container {
+                grid-template-columns: 1fr;
+
+                gap: 40px;
+
+                margin-top: 45px;
+                margin-bottom: 45px;
+            }
+
+            h1 {
+                font-size: 52px;
+            }
+
+            .topbar {
+                padding: 0 5%;
+            }
+
+            .status {
+                display: flex;
+            }
+
+            .auth-card,
+            .dashboard-box {
+                padding: 25px;
+            }
+        }
+    </style>
 </head>
+
+
 <body>
 
-<div class="container">
-  <div class="brand">
-    <h1>AUTHENTICATING XYZ</h1>
-    <p>Knock Knock , who's here !</p>
-  </div>
+    <!-- =========================
+         TOP BAR
+    ========================= -->
 
-  <!-- Auth view (login/register) -->
-  <div class="auth-view active">
-    <div class="card">
-      <div class="tabs">
-        <button class="tab-btn active" data-tab="login">Login</button>
-        <button class="tab-btn" data-tab="register">Register</button>
-        <div class="tab-indicator"></div>
-      </div>
+    <header class="topbar">
 
-      <!-- Login -->
-      <div id="login" class="tab-content active">
-        <form id="loginForm">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="loginEmail" placeholder="abc@example.com" required>
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="loginPassword" placeholder="••••••••" required>
-          </div>
-          <button type="submit">Sign in</button>
-          <div id="loginMsg" class="msg"></div>
-        </form>
-      </div>
+        <div class="status">
 
-      <!-- Register -->
-      <div id="register" class="tab-content">
-        <form id="registerForm">
-          <div class="form-group">
-            <label>Email</label>
-            <input type="email" id="registerEmail" placeholder="abc@example.com" required>
-          </div>
-          <div class="form-group">
-            <label>Password</label>
-            <input type="password" id="registerPassword" placeholder="8+ characters" minlength="8" required>
-          </div>
-          <button type="submit">Create account</button>
-          <div id="registerMsg" class="msg"></div>
-        </form>
-      </div>
-    </div>
-  </div>
+            <div class="status-dot"></div>
 
-  <!-- Dashboard (logged in) -->
-  <div class="dashboard">
-    <div class="card">
-      <div class="dashboard-header">
-        <h2>Welcome back</h2>
-        <div class="user-email" id="userEmail">—</div>
-      </div>
+            SYSTEM ONLINE
 
-      <div class="api-status" id="apiStatus">System: Active</div>
+        </div>
 
-      <div class="token-info">
-        <div class="token-label">TOKEN EXPIRES IN</div>
-        <div id="ttlText">—</div>
-        <div class="ttl-bar"><div class="ttl-fill" id="ttlFill" style="width: 100%"></div></div>
-      </div>
+    </header>
 
-      <div class="btn-group" style="margin-bottom: 16px;">
-        <button class="btn-secondary" id="refreshBtn">Refresh</button>
-        <button class="btn-secondary" id="meBtn">Profile</button>
-      </div>
 
-      <button class="btn-secondary btn-danger" id="logoutBtn">Log out</button>
 
-      <div id="dashMsg" class="msg"></div>
-    </div>
-  </div>
-</div>
-<script>
-const API_BASE = "https://authenticatingxyz.onrender.com";
-let accessToken = null;
-let tokenExpiresAt = null;
-let ttlInterval = null;
 
-const $ = (id) => document.getElementById(id);
+    <main class="container">
 
-function decodeJwt(token) {
-  try {
-    return JSON.parse(atob(token.split('.')[1]));
-  } catch (e) {
-    return null;
-  }
-}                                                
-function showMsg(id, text, type) {
-  const el = $(id);
-  el.textContent = text;
-  el.className = `msg show ${type}`;
-}
+       
 
-// Tab switching with indicator
-const tabs = document.querySelectorAll('.tab-btn');
-const indicator = document.querySelector('.tab-indicator');
+        <section class="hero">
 
-function updateIndicator(activeTab) {
-  const left = activeTab.offsetLeft;
-  const width = activeTab.offsetWidth;
-  indicator.style.left = left + 'px';
-  indicator.style.width = width + 'px';
-}
+            <div class="eyebrow">
+                GET IN, ONLY AT ONE COST
+            </div>
 
-tabs.forEach(btn => {
-  btn.addEventListener('click', () => {
-    tabs.forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-    btn.classList.add('active');
-    updateIndicator(btn);
-    $(btn.dataset.tab).classList.add('active');
-  });
-});
+            <h1>
+                Identity<br>
+                <span>Verified.</span>
+            </h1>
 
-window.addEventListener('resize', () => {
-  const activeBtn = document.querySelector('.tab-btn.active');
-  if (activeBtn) updateIndicator(activeBtn);
-});
+            <div class="prove-yourself">
 
-updateIndicator(tabs[0]);
+                <div>
+                    <strong>Authenticating you</strong>
+                </div>
 
-// Register
-$('registerForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = $('registerEmail').value.trim();
-  const password = $('registerPassword').value;
-  
-  try {
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      showMsg('registerMsg', '✓ Account created', 'success');
-      $('registerEmail').value = '';
-      $('registerPassword').value = '';
-    } else {
-      showMsg('registerMsg', data.detail || 'Failed', 'error');
-    }
-  } catch (e) {
-    showMsg('registerMsg', 'Network error', 'error');
-  }
-});
+                <div>
+                    anywhere and everywhere, you (and we) know who you are
+                </div>
 
-// Login
-$('loginForm').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const email = $('loginEmail').value.trim();
-  const password = $('loginPassword').value;
-  
-  try {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      accessToken = data.access_token;
-      const payload = decodeJwt(accessToken);
-      tokenExpiresAt = payload.exp * 1000;
-      $('userEmail').textContent = email;
-      
-      document.querySelector('.auth-view').classList.remove('active');
-      document.querySelector('.dashboard').classList.add('active');
-      startTtlClock();
-    } else {
-      showMsg('loginMsg', data.detail || 'Login failed', 'error');
-    }
-  } catch (e) {
-    showMsg('loginMsg', 'Network error', 'error');
-  }
-});
+            </div>
 
-function startTtlClock() {
-  clearInterval(ttlInterval);
-  tick();
-  ttlInterval = setInterval(tick, 1000);
-}
+        </section>
 
-function tick() {
-  if (!tokenExpiresAt) return;
-  const now = Date.now();
-  const remaining = Math.max(0, Math.round((tokenExpiresAt - now) / 1000));
-  const mins = Math.floor(remaining / 60);
-  const secs = remaining % 60;
-  
-  $('ttlText').textContent = remaining > 0 ? `${mins}m ${secs}s` : 'expired';
-  
-  const pct = Math.max(0, Math.min(100, (remaining / (15 * 60)) * 100));
-  const bar = $('ttlFill');
-  bar.style.width = pct + '%';
-  bar.style.background = remaining < 60 ? '#e2574c' : (remaining < 180 ? '#ffb457' : '#6fcf97');
-}
 
-$('refreshBtn').addEventListener('click', async () => {
-  try {
-    const res = await fetch(`${API_BASE}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include'
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      accessToken = data.access_token;
-      const payload = decodeJwt(accessToken);
-      tokenExpiresAt = payload.exp * 1000;
-      showMsg('dashMsg', '✓ Token refreshed', 'success');
-      startTtlClock();
-    } else {
-      showMsg('dashMsg', data.detail || 'Failed', 'error');
-    }
-  } catch (e) {
-    showMsg('dashMsg', 'Network error', 'error');
-  }
-});
+        <!-- RIGHT SIDE -->
 
-$('meBtn').addEventListener('click', async () => {
-  try {
-    const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: { 'Authorization': `Bearer ${accessToken}` }
-    });
-    const data = await res.json();
-    
-    if (res.ok) {
-      showMsg('dashMsg', `✓ Verified: ${data.email}`, 'success');
-    } else {
-      showMsg('dashMsg', data.detail || 'Failed', 'error');
-    }
-  } catch (e) {
-    showMsg('dashMsg', 'Network error', 'error');
-  }
-});
+        <section>
 
-$('logoutBtn').addEventListener('click', async () => {
-  try {
-    await fetch(`${API_BASE}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include'
-    });
-  } catch (e) {}
-  
-  accessToken = null;
-  tokenExpiresAt = null;
-  clearInterval(ttlInterval);
-  
-  document.querySelector('.dashboard').classList.remove('active');
-  document.querySelector('.auth-view').classList.add('active');
-  $('loginEmail').value = '';
-  $('loginPassword').value = '';
-});
-</script>
+          
+
+            <div
+                class="auth-card"
+                id="authCard"
+            >
+
+                <div class="card-header">
+
+                    <h2 id="formTitle">
+                        IDENTITY CHECK
+                    </h2>
+
+                    <div class="classification">
+                        SECURE
+                    </div>
+
+                </div>
+
+
+               
+
+                <div class="tabs">
+
+                    <button
+                        class="tab active"
+                        id="loginTab"
+                        type="button"
+                    >
+                        LOGIN
+                    </button>
+
+                    <button
+                        class="tab"
+                        id="registerTab"
+                        type="button"
+                    >
+                        REGISTER
+                    </button>
+
+                </div>
+
+
+                <!-- FORM -->
+
+                <form id="authForm">
+
+                    <div class="form-group">
+
+                        <label for="email">
+                            EMAIL
+                        </label>
+
+                        <input
+                            type="email"
+                            id="email"
+                            placeholder="abc@example.com"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="password">
+                            password
+                        </label>
+
+                        <input
+                            type="password"
+                            id="password"
+                            placeholder="••••••••••••"
+                            required
+                        >
+
+                    </div>
+
+
+                    <button
+                        class="submit-btn"
+                        type="submit"
+                        id="submitBtn"
+                    >
+                        LOGIN
+                    </button>
+
+
+                    <div
+                        class="message"
+                        id="message"
+                    ></div>
+
+                </form>
+
+
+                <!-- TERMINAL -->
+
+                <div class="terminal">
+
+                    <span>$</span>
+                    awaiting secure credentials...
+
+                    <br>
+
+                    <span>$</span>
+                    encrypted transport: ACTIVE
+
+                    <br>
+
+                    <span>$</span>
+                    session protection: ENABLED
+
+                </div>
+
+            </div>
+
+
+            <!-- =========================
+                 USER DASHBOARD
+            ========================= -->
+
+            <div
+                class="dashboard"
+                id="dashboard"
+            >
+
+                <div class="dashboard-box">
+
+                    <div class="card-header">
+
+                        <h2>
+                            CASE ACCESS GRANTED
+                        </h2>
+
+                        <div class="classification">
+                            VERIFIED
+                        </div>
+
+                    </div>
+
+
+                    <div class="profile-line">
+
+                        <span>
+                            IDENTITY
+                        </span>
+
+                        <span id="userEmail">
+                            —
+                        </span>
+
+                    </div>
+
+
+                    <div class="profile-line">
+
+                        <span>
+                            SESSION
+                        </span>
+
+                        <span>
+                            ACTIVE
+                        </span>
+
+                    </div>
+
+
+                    <div class="profile-line">
+
+                        <span>
+                            ACCESS LEVEL
+                        </span>
+
+                        <span>
+                            AUTHENTICATED
+                        </span>
+
+                    </div>
+
+
+                    <button
+                        class="logout"
+                        id="logoutBtn"
+                        type="button"
+                    >
+                        TERMINATE SESSION
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =========================
+         FOOTER
+    ========================= -->
+
+    <footer>
+        AUTHETICATE • SECURE IDENTITY SYSTEM
+    </footer>
+
+
+    <!-- =========================
+         JAVASCRIPT
+    ========================= -->
+
+    <script>
+
+        const API_BASE =
+            "https://authenticatingxyz.onrender.com";
+
+
+        let isRegisterMode = false;
+
+
+        const authForm =
+            document.getElementById("authForm");
+
+        const loginTab =
+            document.getElementById("loginTab");
+
+        const registerTab =
+            document.getElementById("registerTab");
+
+        const formTitle =
+            document.getElementById("formTitle");
+
+        const submitBtn =
+            document.getElementById("submitBtn");
+
+        const message =
+            document.getElementById("message");
+
+        const authCard =
+            document.getElementById("authCard");
+
+        const dashboard =
+            document.getElementById("dashboard");
+
+        const userEmail =
+            document.getElementById("userEmail");
+
+        const logoutBtn =
+            document.getElementById("logoutBtn");
+
+
+        /* =========================
+           DISPLAY MESSAGE
+        ========================= */
+
+        function showMessage(text, type) {
+
+            message.textContent = text;
+
+            message.className =
+                "message " + type;
+
+        }
+
+
+        /* =========================
+           LOGIN TAB
+        ========================= */
+
+        loginTab.addEventListener(
+            "click",
+            () => {
+
+                isRegisterMode = false;
+
+                loginTab.classList.add("active");
+
+                registerTab.classList.remove("active");
+
+                formTitle.textContent =
+                    "IDENTITY CHECK";
+
+                submitBtn.textContent =
+                    "AUTHENTICATE";
+
+                showMessage("", "");
+
+            }
+        );
+
+
+        /* =========================
+           REGISTER TAB
+        ========================= */
+
+        registerTab.addEventListener(
+            "click",
+            () => {
+
+                isRegisterMode = true;
+
+                registerTab.classList.add("active");
+
+                loginTab.classList.remove("active");
+
+                formTitle.textContent =
+                    "CREATE ACCOUNT";
+
+                submitBtn.textContent =
+                    "REGISTER";
+
+                showMessage("", "");
+
+            }
+        );
+
+
+        /* =========================
+           LOGIN / REGISTER
+        ========================= */
+
+        authForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                const email =
+                    document.getElementById(
+                        "email"
+                    ).value;
+
+                const password =
+                    document.getElementById(
+                        "password"
+                    ).value;
+
+
+                showMessage(
+                    "Contacting authentication server...",
+                    ""
+                );
+
+
+                const endpoint =
+                    isRegisterMode
+                        ? "/auth/register"
+                        : "/auth/login";
+
+
+                try {
+
+                    const response =
+                        await fetch(
+                            API_BASE + endpoint,
+                            {
+                                method: "POST",
+
+                                credentials: "include",
+
+                                headers: {
+                                    "Content-Type":
+                                        "application/json"
+                                },
+
+                                body:
+                                    JSON.stringify({
+                                        email: email,
+                                        password: password
+                                    })
+                            }
+                        );
+
+
+                    const data =
+                        await response.json();
+
+
+                    if (!response.ok) {
+
+                        throw new Error(
+                            data.detail ||
+                            "Authentication failed"
+                        );
+
+                    }
+
+
+                    /* REGISTRATION SUCCESS */
+
+                    if (isRegisterMode) {
+
+                        showMessage(
+                            "Identity created successfully. Authenticate to continue.",
+                            "success"
+                        );
+
+                        document.getElementById(
+                            "password"
+                        ).value = "";
+
+                        loginTab.click();
+
+                    }
+
+
+                    /* LOGIN SUCCESS */
+
+                    else {
+
+                        localStorage.setItem(
+                            "access_token",
+                            data.access_token
+                        );
+
+                        await loadCurrentUser();
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    showMessage(
+                        error.message,
+                        "error"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================
+           LOAD CURRENT USER
+        ========================= */
+
+        async function loadCurrentUser() {
+
+            const token =
+                localStorage.getItem(
+                    "access_token"
+                );
+
+
+            if (!token) {
+                return;
+            }
+
+
+            try {
+
+                const response =
+                    await fetch(
+                        API_BASE + "/auth/me",
+                        {
+                            method: "GET",
+
+                            credentials: "include",
+
+                            headers: {
+                                "Authorization":
+                                    "Bearer " + token
+                            }
+                        }
+                    );
+
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Session expired"
+                    );
+
+                }
+
+
+                const user =
+                    await response.json();
+
+
+                userEmail.textContent =
+                    user.email;
+
+
+                authCard.style.display =
+                    "none";
+
+                dashboard.classList.add(
+                    "visible"
+                );
+
+            }
+
+            catch (error) {
+
+                localStorage.removeItem(
+                    "access_token"
+                );
+
+            }
+
+        }
+
+
+        /* =========================
+           LOGOUT
+        ========================= */
+
+        logoutBtn.addEventListener(
+            "click",
+            async () => {
+
+                try {
+
+                    await fetch(
+                        API_BASE + "/auth/logout",
+                        {
+                            method: "POST",
+
+                            credentials: "include"
+                        }
+                    );
+
+                }
+
+                finally {
+
+                    localStorage.removeItem(
+                        "access_token"
+                    );
+
+
+                    dashboard.classList.remove(
+                        "visible"
+                    );
+
+                    authCard.style.display =
+                        "block";
+
+
+                    loginTab.click();
+
+
+                    showMessage(
+                        "Session terminated successfully.",
+                        "success"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* =========================
+           CHECK EXISTING SESSION
+        ========================= */
+
+        loadCurrentUser();
+
+    </script>
 
 </body>
+</html>
