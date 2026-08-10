@@ -16,7 +16,7 @@ app = FastAPI(title="Auth Platform", version="1.0.0")
 # CORS configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5500"],
+    allow_origins=["http://localhost:3000", "http://localhost:5173", "http://127.0.0.1:5500" , "https://authenticatingxyz-frontend.onrender.com"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -60,7 +60,7 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token_raw,
         httponly=True,
-        secure=False,  # Set to True in production (requires HTTPS)
+        secure= True,  # requires HTTPS
         samesite="strict",
         max_age=7 * 24 * 60 * 60,  # 7 days
     )
