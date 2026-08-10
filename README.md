@@ -1,6 +1,6 @@
 # Authentication Platform
 
-A learning/portfolio authentication system demonstrating core auth concepts: user registration, JWT-based login, token refresh rotation, and OAuth2 provider patterns.
+An authentication system demonstrating core auth concepts: user registration, JWT-based login, token refresh rotation, and OAuth2 provider patterns.
 
 **Note:** This is an educational implementation, not a production-ready service. In production, use managed solutions like Auth0 or AWS Cognito.
 
