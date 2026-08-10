@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Authenticating xyz</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+  --bg: #0a0b10;
+  --bg-dark: #050608;
+  --panel: #0f1119;
+  --border: #1e2230;
+  --text: #e7e6e2;
+  --muted: #8b8d9b;
+  --accent: #ffb457;
+  --accent-light: #ffc870;
+  --success: #6fcf97;
+  --error: #e2574c;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  padding: 40px 20px;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Animated background */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 20% 50%, rgba(255, 180, 87, 0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, rgba(111, 207, 151, 0.08) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+  animation: gradientShift 15s ease-in-out infinite;
+}
+
+@keyframes gradientShift {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.container {
+  max-width: 420px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.brand {
+  text-align: center;
+  margin-bottom: 50px;
+  animation: slideDown 0.8s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.brand h1 {
+  font-size: 32px;
+  margin-bottom: 8px;
+  font-family: 'Space Grotesk', sans-serif;
+  letter-spacing: 3px;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: 0 0 30px rgba(255, 180, 87, 0.3);
+}
+
+.brand p {
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.card {
+  background: linear-gradient(135deg, var(--panel) 0%, rgba(15, 17, 25, 0.8) 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 36px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), 0 0 40px rgba(255, 180, 87, 0.1);
+  animation: fadeInUp 0.8s ease-out 0.2s both;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 28px;
+  position: relative;
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: -1px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  transition: left 0.3s ease, width 0.3s ease;
+  box-shadow: 0 0 10px rgba(255, 180, 87, 0.5);
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px;
+  background: none;
+  border: none;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 13px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: color 0.3s;
+  position: relative;
+  font-weight: 500;
+}
+
+.tab-btn:hover {
+  color: var(--accent);
+}
+
+.tab-btn.active {
+  color: var(--text);
+}
+
+.tab-content { display: none; animation: fadeIn 0.4s ease-out; }
+.tab-content.active { display: block; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.form-group { margin-bottom: 18px; }
+
+label {
+  display: block;
+  font-size: 11px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
+input {
+  width: 100%;
+  padding: 12px 14px;
+  background: rgba(10, 11, 16, 0.6);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 13px;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(10, 11, 16, 0.9);
+  box-shadow: 0 0 15px rgba(255, 180, 87, 0.2);
+}
+
+input::placeholder { color: #556077; }
+
+button {
+  width: 100%;
+  padding: 12px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-light));
+  color: #0a0b10;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.3s;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(255, 180, 87, 0.3);
+}
+
+button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.2);
+  transition: left 0.3s;
+  z-index: -1;
+}
+
+button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(255, 180, 87, 0.4);
+}
+
+button:hover::before {
+  left: 100%;
+}
+
+button:active {
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.msg {
+  margin-top: 12px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: var(--mono);
+  display: none;
+  animation: slideInDown 0.4s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.msg.show { display: block; }
+.msg.error {
+  background: rgba(226, 87, 76, 0.15);
+  color: var(--error);
+  border: 1px solid rgba(226, 87, 76, 0.3);
+}
+.msg.success {
+  background: rgba(111, 207, 151, 0.15);
+  color: var(--success);
+  border: 1px solid rgba(111, 207, 151, 0.3);
+}
+
+.auth-view { display: none; }
+.auth-view.active { display: block; }
+
+.dashboard { display: none; }
+.dashboard.active { display: block; }
+
+.dashboard-header {
+  margin-bottom: 32px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+  animation: fadeIn 0.6s ease-out;
+}
+
+.dashboard-header h2 {
+  font-size: 22px;
+  margin-bottom: 4px;
+  font-family: 'Space Grotesk', sans-serif;
+}
+
+.user-email {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  background: rgba(139, 157, 171, 0.1);
+  border-radius: 4px;
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.token-info {
+  background: rgba(10, 11, 16, 0.6);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11px;
+  backdrop-filter: blur(5px);
+}
+
+.token-label {
+  color: var(--muted);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.token-value {
+  color: var(--accent);
+  font-size: 10px;
+  word-break: break-all;
+  margin-top: 4px;
+}
+
+.ttl-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 10px;
+  box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.ttl-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent-light));
+  transition: width 1s linear, background 0.3s;
+  box-shadow: 0 0 15px rgba(255, 180, 87, 0.5);
+}
+
+.btn-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.btn-secondary {
+  flex: 1;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--text);
+  padding: 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 12px;
+  font-family: var(--mono);
+  transition: all 0.3s;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.btn-secondary:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 180, 87, 0.08);
+  box-shadow: 0 0 15px rgba(255, 180, 87, 0.2);
+  transform: translateY(-2px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-danger {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.btn-danger:hover {
+  background: rgba(226, 87, 76, 0.08);
+  box-shadow: 0 0 15px rgba(226, 87, 76, 0.2);
+}
+
+.api-status {
+  padding: 12px;
+  background: rgba(111, 207, 151, 0.1);
+  border: 1px solid rgba(111, 207, 151, 0.3);
+  border-radius: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--success);
+  margin-bottom: 20px;
+  text-align: center;
+  letter-spacing: 1px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.api-status.error {
+  background: rgba(226, 87, 76, 0.1);
+  border-color: rgba(226, 87, 76, 0.3);
+  color: var(--error);
+}
+
+/* Floating animation for card */
+.card {
+  animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Glow effect on brand */
+.brand h1 {
+  animation: glowPulse 3s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+  0%, 100% { text-shadow: 0 0 30px rgba(255, 180, 87, 0.3); }
+  50% { text-shadow: 0 0 50px rgba(255, 180, 87, 0.6); }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand">
+    <h1>AUTHENTICATING XYZ</h1>
+    <p>Login Platform</p>
+  </div>
+
+  <!-- Auth view (login/register) -->
+  <div class="auth-view active">
+    <div class="card">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="login">Login</button>
+        <button class="tab-btn" data-tab="register">Register</button>
+        <div class="tab-indicator"></div>
+      </div>
+
+      <!-- Login -->
+      <div id="login" class="tab-content active">
+        <form id="loginForm">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="loginEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" required>
+          </div>
+          <button type="submit">Sign in</button>
+          <div id="loginMsg" class="msg"></div>
+        </form>
+      </div>
+
+      <!-- Register -->
+      <div id="register" class="tab-content">
+        <form id="registerForm">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="registerEmail" placeholder="you@example.com" required>
+          </div>
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="registerPassword" placeholder="8+ characters" minlength="8" required>
+          </div>
+          <button type="submit">Create account</button>
+          <div id="registerMsg" class="msg"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard (logged in) -->
+  <div class="dashboard">
+    <div class="card">
+      <div class="dashboard-header">
+        <h2>Welcome back</h2>
+        <div class="user-email" id="userEmail">—</div>
+      </div>
+
+      <div class="api-status" id="apiStatus">System: Active</div>
+
+      <div class="token-info">
+        <div class="token-label">TOKEN EXPIRES IN</div>
+        <div id="ttlText">—</div>
+        <div class="ttl-bar"><div class="ttl-fill" id="ttlFill" style="width: 100%"></div></div>
+      </div>
+
+      <div class="btn-group" style="margin-bottom: 16px;">
+        <button class="btn-secondary" id="refreshBtn">Refresh</button>
+        <button class="btn-secondary" id="meBtn">Profile</button>
+      </div>
+
+      <button class="btn-secondary btn-danger" id="logoutBtn">Log out</button>
+
+      <div id="dashMsg" class="msg"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const API_BASE = "http://127.0.0.1:8000";
+
+let accessToken = null;
+let tokenExpiresAt = null;
+let ttlInterval = null;
+
+const $ = (id) => document.getElementById(id);
+
+function decodeJwt(token) {
+  try {
+    return JSON.parse(atob(token.split('.')[1]));
+  } catch (e) {
+    return null;
+  }
+}
+
+function showMsg(id, text, type) {
+  const el = $(id);
+  el.textContent = text;
+  el.className = `msg show ${type}`;
+}
+
+// Tab switching with indicator
+const tabs = document.querySelectorAll('.tab-btn');
+const indicator = document.querySelector('.tab-indicator');
+
+function updateIndicator(activeTab) {
+  const left = activeTab.offsetLeft;
+  const width = activeTab.offsetWidth;
+  indicator.style.left = left + 'px';
+  indicator.style.width = width + 'px';
+}
+
+tabs.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabs.forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    updateIndicator(btn);
+    $(btn.dataset.tab).classList.add('active');
+  });
+});
+
+window.addEventListener('resize', () => {
+  const activeBtn = document.querySelector('.tab-btn.active');
+  if (activeBtn) updateIndicator(activeBtn);
+});
+
+updateIndicator(tabs[0]);
+
+// Register
+$('registerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('registerEmail').value.trim();
+  const password = $('registerPassword').value;
+  
+  try {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+      showMsg('registerMsg', '✓ Account created', 'success');
+      $('registerEmail').value = '';
+      $('registerPassword').value = '';
+    } else {
+      showMsg('registerMsg', data.detail || 'Failed', 'error');
+    }
+  } catch (e) {
+    showMsg('registerMsg', 'Network error', 'error');
+  }
+});
+
+// Login
+$('loginForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = $('loginEmail').value.trim();
+  const password = $('loginPassword').value;
+  
+  try {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+      accessToken = data.access_token;
+      const payload = decodeJwt(accessToken);
+      tokenExpiresAt = payload.exp * 1000;
+      $('userEmail').textContent = email;
+      
+      document.querySelector('.auth-view').classList.remove('active');
+      document.querySelector('.dashboard').classList.add('active');
+      startTtlClock();
+    } else {
+      showMsg('loginMsg', data.detail || 'Login failed', 'error');
+    }
+  } catch (e) {
+    showMsg('loginMsg', 'Network error', 'error');
+  }
+});
+
+function startTtlClock() {
+  clearInterval(ttlInterval);
+  tick();
+  ttlInterval = setInterval(tick, 1000);
+}
+
+function tick() {
+  if (!tokenExpiresAt) return;
+  const now = Date.now();
+  const remaining = Math.max(0, Math.round((tokenExpiresAt - now) / 1000));
+  const mins = Math.floor(remaining / 60);
+  const secs = remaining % 60;
+  
+  $('ttlText').textContent = remaining > 0 ? `${mins}m ${secs}s` : 'expired';
+  
+  const pct = Math.max(0, Math.min(100, (remaining / (15 * 60)) * 100));
+  const bar = $('ttlFill');
+  bar.style.width = pct + '%';
+  bar.style.background = remaining < 60 ? '#e2574c' : (remaining < 180 ? '#ffb457' : '#6fcf97');
+}
+
+$('refreshBtn').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_BASE}/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+      accessToken = data.access_token;
+      const payload = decodeJwt(accessToken);
+      tokenExpiresAt = payload.exp * 1000;
+      showMsg('dashMsg', '✓ Token refreshed', 'success');
+      startTtlClock();
+    } else {
+      showMsg('dashMsg', data.detail || 'Failed', 'error');
+    }
+  } catch (e) {
+    showMsg('dashMsg', 'Network error', 'error');
+  }
+});
+
+$('meBtn').addEventListener('click', async () => {
+  try {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    });
+    const data = await res.json();
+    
+    if (res.ok) {
+      showMsg('dashMsg', `✓ Verified: ${data.email}`, 'success');
+    } else {
+      showMsg('dashMsg', data.detail || 'Failed', 'error');
+    }
+  } catch (e) {
+    showMsg('dashMsg', 'Network error', 'error');
+  }
+});
+
+$('logoutBtn').addEventListener('click', async () => {
+  try {
+    await fetch(`${API_BASE}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include'
+    });
+  } catch (e) {}
+  
+  accessToken = null;
+  tokenExpiresAt = null;
+  clearInterval(ttlInterval);
+  
+  document.querySelector('.dashboard').classList.remove('active');
+  document.querySelector('.auth-view').classList.add('active');
+  $('loginEmail').value = '';
+  $('loginPassword').value = '';
+});
+</script>
+
+</body>
+</html>
