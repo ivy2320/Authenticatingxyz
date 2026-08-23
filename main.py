@@ -2,18 +2,17 @@ from fastapi import FastAPI, Depends, HTTPException, status, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from database import engine, get_db, Base
-from models import User, RefreshToken
+from models import User, RefreshToken, EmailVerificationToken,PasswordResetToken
 from schemas import RegisterRequest, LoginRequest, UserResponse, TokenResponse, MessageResponse
 from security import hash_password, verify_password, create_access_token, decode_access_token, generate_refresh_token, hash_refresh_token
 from datetime import datetime, timedelta
 import os
 
-# Create tables if they don't exist
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Auth Platform", version="1.0.0")
 
-# cors
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -35,19 +34,36 @@ def root():
 
 @app.post("/auth/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: RegisterRequest, response: Response, db: Session = Depends(get_db)):
-    # Check if email already exists
+   
     existing_user = db.query(User).filter(User.email == payload.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Unable to register with these details")
     
-    # Hash password and create user
+   
     hashed_password = hash_password(payload.password)
     new_user = User(email=payload.email, password_hash=hashed_password)
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
     
-    # Issue refresh token and set as httpOnly cookie
+  
+    verification_token = create_access_token(new_user.id)
+    
+   
+    expires_at = datetime.utcnow() + timedelta(hours=24)
+    email_token = EmailVerificationToken(
+        token=verification_token,
+        user_id=new_user.id,
+        expires_at=expires_at
+    )
+    db.add(email_token)
+    db.commit()
+    
+    
+    from email_service import send_verification_email
+    send_verification_email(new_user.email, verification_token)
+    
+    
     refresh_token_raw = generate_refresh_token()
     refresh_token_hash = hash_refresh_token(refresh_token_raw)
     expires_at = datetime.utcnow() + timedelta(days=7)
@@ -60,31 +76,31 @@ def register(payload: RegisterRequest, response: Response, db: Session = Depends
     db.add(db_refresh_token)
     db.commit()
     
-    # Set httpOnly cookie
+  
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token_raw,
         httponly=True,
-        secure= True, 
+        secure=True,
         samesite="strict",
-        max_age=7 * 24 * 60 * 60,  # 7 days
+        max_age=7 * 24 * 60 * 60,
     )
     
     return new_user
 
 @app.post("/auth/login", response_model=TokenResponse)
 def login(payload: LoginRequest, response: Response, db: Session = Depends(get_db)):
-    # Find user by email
+   
     user = db.query(User).filter(User.email == payload.email).first()
     
-    # Generic error message
+    
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Create access token
+   
     access_token = create_access_token(user.id)
     
-    # Generate refresh token
+    
     refresh_token_raw = generate_refresh_token()
     refresh_token_hash = hash_refresh_token(refresh_token_raw)
     expires_at = datetime.utcnow() + timedelta(days=7)
@@ -97,12 +113,12 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
     db.add(db_refresh_token)
     db.commit()
     
-    # Set httpOnly cookie
+  
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=refresh_token_raw,
         httponly=True,
-        secure=False,  # Set to True in production (requires HTTPS)
+        secure=False,  
         samesite="strict",
         max_age=7 * 24 * 60 * 60,
     )
@@ -111,13 +127,13 @@ def login(payload: LoginRequest, response: Response, db: Session = Depends(get_d
 
 @app.post("/auth/refresh", response_model=TokenResponse)
 def refresh(request: Request, response: Response, db: Session = Depends(get_db)):
-    # Read refresh token from httpOnly cookie
+   
     refresh_token_raw = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     
     if not refresh_token_raw:
         raise HTTPException(status_code=401, detail="No refresh token provided")
     
-    # Hash and look up in DB
+    
     refresh_token_hash = hash_refresh_token(refresh_token_raw)
     db_token = db.query(RefreshToken).filter(
         RefreshToken.token_hash == refresh_token_hash
@@ -126,14 +142,14 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     if not db_token or db_token.revoked or db_token.expires_at < datetime.utcnow():
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
     
-    # Revoke old token
+    
     db_token.revoked = True
     db.commit()
     
-    # Issue new access token
+   
     access_token = create_access_token(db_token.user_id)
     
-    # Generate and store new refresh token
+   
     new_refresh_token_raw = generate_refresh_token()
     new_refresh_token_hash = hash_refresh_token(new_refresh_token_raw)
     expires_at = datetime.utcnow() + timedelta(days=7)
@@ -146,7 +162,7 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
     db.add(new_db_token)
     db.commit()
     
-    # Set new httpOnly cookie
+    
     response.set_cookie(
         key=REFRESH_TOKEN_COOKIE_NAME,
         value=new_refresh_token_raw,
@@ -160,11 +176,11 @@ def refresh(request: Request, response: Response, db: Session = Depends(get_db))
 
 @app.post("/auth/logout", response_model=MessageResponse)
 def logout(request: Request, response: Response, db: Session = Depends(get_db)):
-    # Read refresh token from cookie
+    
     refresh_token_raw = request.cookies.get(REFRESH_TOKEN_COOKIE_NAME)
     
     if refresh_token_raw:
-        # Mark as revoked in DB
+      
         refresh_token_hash = hash_refresh_token(refresh_token_raw)
         db_token = db.query(RefreshToken).filter(
             RefreshToken.token_hash == refresh_token_hash
@@ -174,14 +190,14 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db)):
             db_token.revoked = True
             db.commit()
     
-    # Clear cookie
+   
     response.delete_cookie(REFRESH_TOKEN_COOKIE_NAME)
     
     return MessageResponse(message="Logged out successfully")
 
 @app.get("/auth/me", response_model=UserResponse)
 def get_current_user(request: Request, db: Session = Depends(get_db)):
-    # Read JWT from Authorization header
+    
     auth_header = request.headers.get("Authorization")
     
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -198,3 +214,91 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="User not found")
     
     return user
+@app.post("/auth/verify-email", response_model=MessageResponse)
+def verify_email(token: str, db: Session = Depends(get_db)):
+    """Verify email using token from email link"""
+    
+    # Look up verification token
+    email_token = db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.token == token
+    ).first()
+    
+    if not email_token:
+        raise HTTPException(status_code=400, detail="Invalid verification token")
+    
+    if email_token.used:
+        raise HTTPException(status_code=400, detail="Token already used")
+    
+    if email_token.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token expired")
+    
+    # Mark user as verified
+    user = db.query(User).filter(User.id == email_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.is_verified = True
+    email_token.used = True
+    
+    db.commit()
+    
+    return MessageResponse(message="Email verified successfully")
+@app.post("/auth/forgot-password", response_model=MessageResponse)
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    """Request password reset email"""
+    
+    # Find user by email
+    user = db.query(User).filter(User.email == email).first()
+    
+    # Always return same message (don't reveal if email exists)
+    if not user:
+        return MessageResponse(message="If that email exists, you'll receive a reset link")
+    
+    # Generate reset token (15 min expiry)
+    reset_token = create_access_token(user.id)
+    expires_at = datetime.utcnow() + timedelta(minutes=15)
+    
+    # Store token in DB
+    password_token = PasswordResetToken(
+        token=reset_token,
+        user_id=user.id,
+        expires_at=expires_at
+    )
+    db.add(password_token)
+    db.commit()
+    
+    # Send email
+    from email_service import send_password_reset_email
+    send_password_reset_email(user.email, reset_token)
+    
+    return MessageResponse(message="If that email exists, you'll receive a reset link")
+    
+@app.post("/auth/reset-password", response_model=MessageResponse)
+def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
+    """Reset password using token"""
+    
+    # Look up reset token
+    reset_token = db.query(PasswordResetToken).filter(
+        PasswordResetToken.token == token
+    ).first()
+    
+    if not reset_token:
+        raise HTTPException(status_code=400, detail="Invalid reset token")
+    
+    if reset_token.used:
+        raise HTTPException(status_code=400, detail="Token already used")
+    
+    if reset_token.expires_at < datetime.utcnow():
+        raise HTTPException(status_code=400, detail="Token expired")
+    
+    # Update password
+    user = db.query(User).filter(User.id == reset_token.user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    user.password_hash = hash_password(new_password)
+    reset_token.used = True
+    
+    db.commit()
+    
+    return MessageResponse(message="Password reset successfully")
