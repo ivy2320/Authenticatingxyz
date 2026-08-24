@@ -302,3 +302,39 @@ def reset_password(token: str, new_password: str, db: Session = Depends(get_db))
     db.commit()
     
     return MessageResponse(message="Password reset successfully")
+@app.post("/auth/forgot-password", response_model=MessageResponse)
+def forgot_password(email: str, db: Session = Depends(get_db)):
+    """Request password reset email"""
+    
+    # Find user by email
+    user = db.query(User).filter(User.email == email).first()
+    
+    # Always return same message (don't reveal if email exists)
+    if not user:
+        return MessageResponse(message="If that email exists, you'll receive a reset link")
+    
+    # Delete old unused reset tokens for this user
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.used == False
+    ).delete()
+    db.commit()
+    
+    # Generate new reset token (15 min expiry)
+    reset_token = create_access_token(user.id)
+    expires_at = datetime.utcnow() + timedelta(minutes=15)
+    
+    # Store token in DB
+    password_token = PasswordResetToken(
+        token=reset_token,
+        user_id=user.id,
+        expires_at=expires_at
+    )
+    db.add(password_token)
+    db.commit()
+    
+    # Send email
+    from email_service import send_password_reset_email
+    send_password_reset_email(user.email, reset_token)
+    
+    return MessageResponse(message="If that email exists, you'll receive a reset link")
