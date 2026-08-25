@@ -7,7 +7,7 @@ from schemas import RegisterRequest, LoginRequest, UserResponse, TokenResponse, 
 from security import hash_password, verify_password, create_access_token, decode_access_token, generate_refresh_token, hash_refresh_token
 from datetime import datetime, timedelta
 import os
-
+import secrets
 Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Auth Platform", version="1.0.0")
@@ -252,15 +252,8 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     if not user:
         return MessageResponse(message="If that email exists, you'll receive a reset link")
     
-    # Mark ALL old unused tokens as used
-    db.query(PasswordResetToken).filter(
-        PasswordResetToken.user_id == user.id,
-        PasswordResetToken.used == False
-    ).update({PasswordResetToken.used: True})
-    db.commit()
-    
-    # Create new token
-    reset_token = create_access_token(user.id)
+    # Generate a random, unique token (not JWT-based)
+    reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     
     password_token = PasswordResetToken(
