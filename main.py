@@ -247,84 +247,22 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 def forgot_password(email: str, db: Session = Depends(get_db)):
     """Request password reset email"""
     
-    # Find user by email
     user = db.query(User).filter(User.email == email).first()
     
-    # Always return same message (don't reveal if email exists)
     if not user:
         return MessageResponse(message="If that email exists, you'll receive a reset link")
     
-    # Generate reset token (15 min expiry)
-    reset_token = create_access_token(user.id)
-    expires_at = datetime.utcnow() + timedelta(minutes=15)
-    
-    # Store token in DB
-    password_token = PasswordResetToken(
-        token=reset_token,
-        user_id=user.id,
-        expires_at=expires_at
-    )
-    db.add(password_token)
-    db.commit()
-    
-    # Send email
-    from email_service import send_password_reset_email
-    send_password_reset_email(user.email, reset_token)
-    
-    return MessageResponse(message="If that email exists, you'll receive a reset link")
-    
-@app.post("/auth/reset-password", response_model=MessageResponse)
-def reset_password(token: str, new_password: str, db: Session = Depends(get_db)):
-    """Reset password using token"""
-    
-    # Look up reset token
-    reset_token = db.query(PasswordResetToken).filter(
-        PasswordResetToken.token == token
-    ).first()
-    
-    if not reset_token:
-        raise HTTPException(status_code=400, detail="Invalid reset token")
-    
-    if reset_token.used:
-        raise HTTPException(status_code=400, detail="Token already used")
-    
-    if reset_token.expires_at < datetime.utcnow():
-        raise HTTPException(status_code=400, detail="Token expired")
-    
-    # Update password
-    user = db.query(User).filter(User.id == reset_token.user_id).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
-    
-    user.password_hash = hash_password(new_password)
-    reset_token.used = True
-    
-    db.commit()
-    
-    return MessageResponse(message="Password reset successfully")
-@app.post("/auth/forgot-password", response_model=MessageResponse)
-def forgot_password(email: str, db: Session = Depends(get_db)):
-    """Request password reset email"""
-    
-    # Find user by email
-    user = db.query(User).filter(User.email == email).first()
-    
-    # Always return same message (don't reveal if email exists)
-    if not user:
-        return MessageResponse(message="If that email exists, you'll receive a reset link")
-    
-    # Delete old unused reset tokens for this user
+    # DELETE old unused tokens first
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
         PasswordResetToken.used == False
     ).delete()
     db.commit()
     
-    # Generate new reset token (15 min expiry)
+    # NOW create new token
     reset_token = create_access_token(user.id)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     
-    # Store token in DB
     password_token = PasswordResetToken(
         token=reset_token,
         user_id=user.id,
@@ -333,7 +271,6 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     db.add(password_token)
     db.commit()
     
-    # Send email
     from email_service import send_password_reset_email
     send_password_reset_email(user.email, reset_token)
     
