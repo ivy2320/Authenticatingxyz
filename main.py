@@ -252,14 +252,14 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     if not user:
         return MessageResponse(message="If that email exists, you'll receive a reset link")
     
-    # DELETE old unused tokens first
+    # Mark ALL old unused tokens as used
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
         PasswordResetToken.used == False
-    ).delete()
+    ).update({PasswordResetToken.used: True})
     db.commit()
     
-    # NOW create new token
+    # Create new token
     reset_token = create_access_token(user.id)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     
