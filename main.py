@@ -218,7 +218,7 @@ def get_current_user(request: Request, db: Session = Depends(get_db)):
 def verify_email(token: str, db: Session = Depends(get_db)):
     """Verify email using token from email link"""
     
-    # Look up verification token
+   
     email_token = db.query(EmailVerificationToken).filter(
         EmailVerificationToken.token == token
     ).first()
@@ -232,7 +232,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     if email_token.expires_at < datetime.utcnow():
         raise HTTPException(status_code=400, detail="Token expired")
     
-    # Mark user as verified
+ 
     user = db.query(User).filter(User.id == email_token.user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
@@ -252,7 +252,7 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     if not user:
         return MessageResponse(message="If that email exists, you'll receive a reset link")
     
-    # Generate a random, unique token (not JWT-based)
+ 
     reset_token = secrets.token_urlsafe(32)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     
