@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 
-# Request schemas (what the client sends)
+
 class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
@@ -10,7 +10,7 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
-# Response schemas (what the server sends back)
+
 class UserResponse(BaseModel):
     id: str
     email: str
