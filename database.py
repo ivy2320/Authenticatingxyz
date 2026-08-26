@@ -11,8 +11,8 @@ engine = create_engine(
     pool_size=5,
     max_overflow=10,
     pool_timeout=30,
-    pool_recycle=1800,  # recycle connections every 30 min
-    pool_pre_ping=True,  # check connection health before using
+    pool_recycle=1800,  
+    pool_pre_ping=True,  
 )
 
 
