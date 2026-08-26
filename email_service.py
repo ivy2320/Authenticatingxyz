@@ -12,10 +12,10 @@ SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 def send_verification_email(user_email: str, verification_token: str):
     """Send verification email with link"""
     
-    # Verification link with actual token
+   
     verify_link = f"https://authenticatingxyz-frontend.onrender.com/verify?token={verification_token}"
     
-    # Email content
+   
     subject = "Verify your email — Authenticating XYZ"
     body = f"""
     Welcome to Authenticating XYZ!
@@ -29,7 +29,7 @@ def send_verification_email(user_email: str, verification_token: str):
     """
     
     try:
-        # Create message
+       
         message = MIMEMultipart()
         message["From"] = SMTP_EMAIL
         message["To"] = user_email
